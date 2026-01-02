@@ -1,0 +1,9 @@
+# ディレクトリ一覧表示を禁止
+Options -Indexes
+
+# image.php 以外からの直アクセスを拒否
+RewriteEngine On
+
+RewriteCond %{HTTP_REFERER} !^$
+RewriteCond %{HTTP_REFERER} !image\.php [NC]
+RewriteRule \.(jpg|png)$ - [F,L]
