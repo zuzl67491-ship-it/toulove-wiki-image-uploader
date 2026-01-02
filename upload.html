@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>とうらぶWiki 画像アップローダー</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+body {
+  font-family: sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+}
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+.box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+h1 { font-size: 1.3em; }
+
+label { display:block; margin-top:15px; }
+input, textarea, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+}
+button {
+  background: #28a745;
+  border: none;
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+}
+button:hover { background:#218838; }
+
+.thumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.thumb {
+  width: 150px;
+  background:#fafafa;
+  border-radius:8px;
+  padding:8px;
+}
+.thumb img {
+  max-width:100%;
+  border-radius:6px;
+}
+.search {
+  margin-bottom: 10px;
+}
+.notice {
+  font-size:0.9em;
+  color:#555;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="box">
+<h1>とうらぶWiki 画像アップローダー</h1>
+<p class="notice">
+・jpg / png のみアップロード可能<br>
+・コメントは35文字まで<br>
+・削除キー（4桁数字）は必須です
+</p>
+</div>
+
+<div class="box">
+<form id="uploadForm" enctype="multipart/form-data">
+<label>画像ファイル</label>
+<input type="file" name="image" accept="image/jpeg,image/png" required>
+
+<label>コメント（35文字まで）</label>
+<textarea name="comment" maxlength="35"></textarea>
+
+<label>削除キー（4桁数字）</label>
+<input type="text" name="key" pattern="\d{4}" maxlength="4" required>
+
+<button type="submit">アップロード</button>
+</form>
+
+<p id="result"></p>
+</div>
+
+<div class="box">
+<h2>アップロード済み画像</h2>
+<input type="text" class="search" placeholder="検索..." onkeyup="filterThumbs(this.value)">
+<div id="thumbList" class="thumb-list"></div>
+</div>
+
+</div>
+
+<script>
+const form = document.getElementById('uploadForm');
+const result = document.getElementById('result');
+const thumbList = document.getElementById('thumbList');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const fd = new FormData(form);
+  const file = fd.get('image');
+
+  if (!file.type.match(/^image\/(jpeg|png)$/)) {
+    alert('jpg または png のみアップロードできます');
+    return;
+  }
+
+  result.textContent = 'アップロード中...';
+
+  const res = await fetch('upload.php', {
+    method: 'POST',
+    body: fd
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    result.textContent = data.error;
+    return;
+  }
+
+  result.innerHTML =
+    `アップロード完了：<a href="download/${data.id}" target="_blank">download/${data.id}</a>`;
+
+  addThumb(data);
+  form.reset();
+});
+
+function addThumb(data) {
+  const div = document.createElement('div');
+  div.className = 'thumb';
+  div.dataset.search = (data.comment + data.id).toLowerCase();
+  div.innerHTML = `
+    <img src="image.php?id=${data.id}">
+    <div>ID:${data.id}</div>
+    <div>${data.comment || ''}</div>
+  `;
+  thumbList.prepend(div);
+}
+
+function filterThumbs(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.thumb').forEach(t => {
+    t.style.display = t.dataset.search.includes(q) ? 'block' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>
