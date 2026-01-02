@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# /download/785 → download.php?id=785
+RewriteRule ^download/([0-9]+)/?$ download.php?id=$1 [L,QSA]
+
+# image.php への GET アクセスを拒否（保険）
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^image\.php$ - [F,L]
