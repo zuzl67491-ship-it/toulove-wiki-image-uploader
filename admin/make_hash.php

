@@ -1,0 +1,9 @@
+<?php
+// ここに生成したいパスワードを入れる（例: 20150114）
+$password = '20150114';
+
+$hash = password_hash($password, PASSWORD_DEFAULT);
+
+echo "生成されたハッシュ:\n";
+echo $hash;
+?>
